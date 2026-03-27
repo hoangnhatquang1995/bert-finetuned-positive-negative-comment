@@ -7,6 +7,7 @@ datasets/
 output/
 models/
 
+.gradio/
 # C extensions
 *.so
 
