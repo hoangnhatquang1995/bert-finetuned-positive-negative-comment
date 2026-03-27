@@ -10,12 +10,19 @@ app = FastAPI(title="Positive Negative Comment Classification API")
 
 prediction_fn = None
 
+
+@app.on_event("startup")
+def _startup() -> None:
+	# Warm-up: load model once on server start
+	if prediction_fn is not None:
+		prediction_fn("warmup")
+
 class PredictRequest(BaseModel):
     text: str = Field(..., min_length=1, description="Input comment/text")
 
 class PredictResponse(BaseModel):
-	label: str
-	scores: dict[str, float]
+    label: str
+    scores: dict[str, float]
 
 @app.get("/health")
 def health():
@@ -30,7 +37,7 @@ def predict(req: PredictRequest) -> PredictResponse:
 	return PredictResponse(label=label, scores=scores)
     
 def api_run(
-	predict_fn = None,
+	predict_fn=None,
 ) -> None:
 	global prediction_fn
 	prediction_fn = predict_fn

@@ -1,3 +1,27 @@
+## Docker
+
+### Build
+
+```bash
+docker build -t sentiment-app .
+```
+
+### Run
+
+```bash
+docker run --rm -p 8000:8000 sentiment-app
+```
+
+- API: `http://127.0.0.1:8000/health`
+- UI: `http://127.0.0.1:8000/ui`
+
+### Use model as a volume (optional)
+
+If you don't want to bake the model into the image, you can mount `output/`:
+
+```bash
+docker run --rm -p 8000:8000 -v "${PWD}/output:/app/output" sentiment-app
+```
 # Positive Negative Vietnamese Comment Prediction
 
 Vietnamese sentiment classification (POSITIVE/NEGATIVE) fine-tuned from PhoBERT and deployed as:
@@ -53,19 +77,19 @@ output/bert-finetuned-negative-positive
 
 > The UI and API will load from this folder by default.
 
-## Run Gradio UI
+## Run App (API + UI)
+
+This starts **one FastAPI server** and mounts the **Gradio UI** at `/ui`.
 
 ```powershell
-python -m source.app --ui
+python -m source.app
 ```
 
-Open the printed local URL (e.g. `http://127.0.0.1:7861`).
+- API base: `http://127.0.0.1:8000`
+## Run (Option 1: One server)
 
-## Run FastAPI
+This starts **one FastAPI server** and mounts the **Gradio UI** at `/ui`.
 
-```powershell
-python -m source.app --api --host 127.0.0.1 --port 8000
-```
 
 Health check:
 

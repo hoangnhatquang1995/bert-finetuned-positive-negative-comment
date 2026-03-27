@@ -95,7 +95,12 @@ sympy==1.14.0
 threadpoolctl==3.6.0
 tokenizers==0.22.2
 tomlkit==0.13.3
-torch==2.7.1+cu118
+# NOTE: Don't pin CUDA-local wheels here (e.g. torch==2.7.1+cu118).
+# Those builds live on the PyTorch wheel index and are platform-specific.
+# For CPU (portable):    pip install torch==2.7.1
+# For CUDA 11.8:         pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cu118
+# (Nightly CUDA wheels use a different index-url.)
+torch==2.7.1
 tornado==6.5.5
 tqdm==4.67.3
 traitlets==5.14.3
