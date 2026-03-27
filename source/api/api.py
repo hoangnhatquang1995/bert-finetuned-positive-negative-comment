@@ -35,3 +35,6 @@ def api_run(
 	global prediction_fn
 	prediction_fn = predict_fn
 	uvicorn.run(app, host="0.0.0.0", port=8000)
+	
+def get_app() -> FastAPI:
+    return app
