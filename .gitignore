@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 datasets/
-output/
+output/bert-finetuned-negative-positive
 models/
 
 .gradio/
