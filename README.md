@@ -7,17 +7,22 @@ Vietnamese sentiment classification for user comments: predict **POSITIVE** vs *
 ## Approach
 
 - Fine-tune a Transformer model (**PhoBERT**) on a labeled sentiment dataset
-- Export the model locally to `output/bert-finetuned-negative-positive`
+- Support 2 training/export modes:
+	- **Full fine-tune** (export full model) to `output/bert-finetuned-negative-positive`
+	- **LoRA / PEFT** (export adapter) to `output/phobert_lora_sentiment`
 - Serve one app with:
 	- **FastAPI** JSON API (`/health`, `/predict`)
 	- **Gradio UI** mounted at `/ui`
 
 ## Result
 
-- Test split (PhoBERT, max_length=256):
+- Test split (Full fine-tune PhoBERT, max_length=256):
 	- Accuracy: **94.56%**
 	- F1 (overall / POSITIVE): **0.9549**
 	- F1 (NEGATIVE): **0.9314**
+- Test split (PhoBERT + LoRA adapter):
+	- Accuracy: **92.97%**
+	- F1 (overall): **0.9428**
 - Full report + confusion matrix are printed and exported to `output/metrics.json` by:
 	- `source/finetune/finetuning.ipynb`
 
@@ -54,6 +59,7 @@ Vietnamese sentiment classification (POSITIVE/NEGATIVE) fine-tuned from PhoBERT 
 ## Features
 
 - Fine-tune a Transformer model on a positive/negative comment dataset
+- Support inference with **LoRA / PEFT** adapter (PhoBERT + LoRA)
 - Shared prediction module (loaded once, reused for UI + API)
 - Simple endpoints for integration: `/health`, `/predict`
 
@@ -87,17 +93,33 @@ python -m pip install -r requirements.txt
 
 ## Train / Export Model
 
-Run the training notebook:
+This repo supports both **full fine-tune** and **LoRA**.
+
+### Option A — Full fine-tune
+
+Run:
 
 - `source/finetune/finetuning.ipynb`
 
-After training, export the model to this folder:
+After training, export the model to:
 
 ```
 output/bert-finetuned-negative-positive
 ```
 
-> The UI and API will load from this folder by default.
+### Option B — LoRA (PEFT)
+
+Run:
+
+- `source/finetune/finetuning_lora.ipynb`
+
+After training, export the LoRA adapter to:
+
+```
+output/phobert_lora_sentiment
+```
+
+> By default, inference in this app uses the LoRA adapter.
 
 ## Run App (API + UI)
 
@@ -132,5 +154,6 @@ docker run --rm -p 8000:8000 -v "${PWD}/output:/app/output" sentiment-app
 ## Notes
 
 - Prediction entrypoint is exposed via `source/prediction/__init__.py` as `predict_sentiment(text)`.
-- If `output/bert-finetuned-negative-positive` is missing, the app/API will raise `FileNotFoundError`.
+- Default model mode is **LoRA** (see `PredictModel(used_lora=True)` in `source/prediction/__init__.py`).
+- If your exported folder is missing, the app/API will raise `FileNotFoundError`.
 
