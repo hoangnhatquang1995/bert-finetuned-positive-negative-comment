@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import gradio as gr
 
-from source.api.api import api_run, get_app
-from source.prediction import predict_sentiment
-from source.ui.ui import get_gradio
+from api.api import api_run, get_app
+from prediction import predict_sentiment
+from ui.ui import get_gradio
 
 
 def main() -> None:

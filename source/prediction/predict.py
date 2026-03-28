@@ -1,29 +1,45 @@
 import torch
 from pathlib import Path
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from peft import PeftModel,PeftConfig
 
-MODEL_DIR = (Path(__file__).resolve().parent / ".." / ".." / "output" / "bert-finetuned-negative-positive").resolve()
+FINETUNE_MODEL_DIR = (Path(__file__).resolve().parent / ".." / ".." / "output" / "bert-finetuned-negative-positive").resolve()
+LORA_MODEL_DIR = (Path(__file__).resolve().parent / ".." / ".." / "output" / "phobert_lora_sentiment").resolve()
 
-if not MODEL_DIR.exists():
+if not FINETUNE_MODEL_DIR.exists():
     raise FileNotFoundError(
-        f"Local model directory not found: {MODEL_DIR}. "
+        f"Local model directory not found: {FINETUNE_MODEL_DIR}. "
         "Please train/export the model to output/bert-finetuned-negative-positive first."
     )
 
+if not LORA_MODEL_DIR.exists():
+    raise FileNotFoundError(
+        f"Local model directory not found: {LORA_MODEL_DIR}. "
+        "Please train/export the model to output/phobert_lora_sentiment first."
+    )
+
 class PredictModel:
-    def __init__(self, device, model_dir=MODEL_DIR):
-        self.tokenizer = AutoTokenizer.from_pretrained(str(model_dir))
-        self.model = AutoModelForSequenceClassification.from_pretrained(str(model_dir))
-        # Force label names (prevents LABEL_0/LABEL_1 on Gradio)
-        self.model.config.id2label = {0: 'NEGATIVE', 1: 'POSITIVE'}
-        self.model.config.label2id = {'NEGATIVE': 0, 'POSITIVE': 1}
+    id2label = {0: 'NEGATIVE', 1: 'POSITIVE'}
+    label2id = {'NEGATIVE': 0, 'POSITIVE': 1}
+
+    def __init__(self, used_lora=True, device = "cpu"):
+        if used_lora:
+            config = PeftConfig.from_pretrained(str(LORA_MODEL_DIR))
+            base_model_name = config.base_model_name_or_path
+            self.tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+            base_model = AutoModelForSequenceClassification.from_pretrained(base_model_name, num_labels=2)
+            self.model = PeftModel.from_pretrained(base_model, str(LORA_MODEL_DIR))
+            self.model.config.id2label = self.id2label
+            self.model.config.label2id = self.label2id
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(str(FINETUNE_MODEL_DIR))
+            self.model = AutoModelForSequenceClassification.from_pretrained(str(FINETUNE_MODEL_DIR))
+            self.model.config.id2label = self.id2label
+            self.model.config.label2id = self.label2id
         self.device = device
         self.model.to(self.device)
         self.model.eval()
 
-    def load(self):
-        #TODO: load model if needed (currently loaded in __init__)
-        pass
 
     def predict(self,text: str):
         if text is None or not str(text).strip():
